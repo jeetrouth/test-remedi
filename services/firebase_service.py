@@ -71,15 +71,37 @@ def update_user(email, data):
 def save_token(email, token):
     user_ref = db.collection("users").document(email)
     user_ref.update({
-        "fcm_token": token
+        "fcm_tokens": firestore.ArrayUnion([token])
     })
+
+
+_user_token_cache = {}
+
+def get_user_tokens(user_id):
+    """
+    Returns list of FCM tokens for a user.
+    Uses in-memory cache to avoid repeated reads.
+    """
+    if user_id in _user_token_cache:
+        return _user_token_cache[user_id]
+
+    user_doc = db.collection("users").document(user_id).get()
+    if not user_doc.exists:
+        _user_token_cache[user_id] = []
+        return []
+
+    tokens = user_doc.to_dict().get("fcm_tokens", [])
+    _user_token_cache[user_id] = tokens
+    return tokens
+
+
 def get_token(email):
     user_doc = db.collection("users").document(email).get()
     if user_doc.exists:
         user_data = user_doc.to_dict()
         return user_data.get("fcm_token")
     return None
-                
+
 def save_schedule(data):
     # Save directly to Firestore
     # We use a Collection Group structure so we can search ALL users at once later

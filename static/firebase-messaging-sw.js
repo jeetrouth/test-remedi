@@ -34,6 +34,7 @@ self.addEventListener('notificationclick', (event) => {
   const scheduleId = event.notification.data.schedule_id;
   const userId = event.notification.data.user_id;
   const medName = event.notification.data.med_name;
+  const medId= event.notification.data.med_id;
 
   // --- SCENARIO A: User clicked the small "Take Now" button ---
   if (event.action === 'mark_taken') {
@@ -43,7 +44,7 @@ self.addEventListener('notificationclick', (event) => {
               await fetch('/api/mark_taken', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ schedule_id: scheduleId, user_id: userId })
+                  body: JSON.stringify({ schedule_id: scheduleId, user_id: userId, med_id: medId })
               });
               // Show a quick confirmation notification
               self.registration.showNotification("Done!", { 

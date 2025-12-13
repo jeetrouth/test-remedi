@@ -7,6 +7,7 @@ from datetime import datetime
 import pytz
 import threading
 import json
+cron_running = False
 
 # Initialize Flask
 app = Flask(__name__)
@@ -208,12 +209,15 @@ def logout():
 # ==========================================
 @app.route('/check_reminders', methods=['GET'])
 def check_reminders_route():
+    global cron_running
     # 1. Get India Time
     ist = pytz.timezone('Asia/Kolkata')
     now_str = datetime.now(ist).strftime('%H:%M') # e.g., "14:30"
-    
+    if cron_running:
+        return "Already running", 200
     # 2. Start Background Thread
-    thread = threading.Thread(target=process_background_notifications, args=(now_str,))
+    cron_running = True
+    thread = threading.Thread(target=process_background_notifications_safe, args=(now_str,))
     thread.start()
     
     # 3. Respond Immediately
@@ -221,41 +225,60 @@ def check_reminders_route():
 # ============================================
 # 2. BACKGROUND THREAD PROCESSING(MESSAGE PROCESSING)
 # ============================================
+def process_background_notifications_safe(time_str):
+    global cron_running
+    try:
+        process_background_notifications(time_str)
+    finally:
+        cron_running = False
+
+
 def process_background_notifications(time_str):
     print(f"🧵 Thread working on: {time_str}")
     
     try:
         # Query Firestore
+        firebase_service._user_token_cache.clear()
         docs=firebase_service.get_schedules_by_time(time_str)
         
         # Optimization: Use Batch Sending!
         # Sending 1 by 1 is slow. Sending 500 at a time is fast.
-        messages_to_send = []
-        
+        messages = []
+
         for doc in docs:
             data = doc.to_dict()
-            msg = messaging.Message(
-                notification=messaging.Notification(
-                    title='Medicine Reminder',
-                    body=f"Time to take your {data['med_name']}"
-                ),
-                data={
-                    'med_id': doc.id,
-                    'user_id': data['user_id'],
-                    'click_action': 'FLUTTER_NOTIFICATION_CLICK'
-                },
-                token=data['token']
-            )
-            messages_to_send.append(msg)
+            user_id = data["user_id"]
+
+            tokens = firebase_service.get_user_tokens(user_id)
+            if not tokens:
+                continue
+
+            for token in tokens:
+                messages.append(
+                    messaging.Message(
+                        notification=messaging.Notification(
+                            title="Medicine Reminder",
+                            body=f"Time to take {data['med_name']}"
+                        ),
+                        data={
+                        "schedule_id": doc.id,
+                        "user_id": user_id,
+                        "med_name": data["med_name"],
+                        "med_id": data["med_id"],
+                        },
+                        token=token
+                    )
+                )
+                messages.append(msg)
 
             # Firebase limit is 500 messages per batch
-            if len(messages_to_send) >= 500:
-                send_batch(messages_to_send)
-                messages_to_send = [] # Reset list
+            if len(messages) >= 500:
+                send_batch(messages)
+                messages = [] # Reset list
 
         # Send remaining messages
-        if messages_to_send:
-            send_batch(messages_to_send)
+        if messages:
+            send_batch(messages)
             
         print(f"✅ Thread finished processing for {time_str}")
         
@@ -290,7 +313,7 @@ def save_fcm_token():
 def mark_taken_api():
     data = request.json
     # CALL YOUR SERVICE
-    result = firebase_services.decrement_inventory(
+    result = firebase_service.decrement_inventory_and_log(
         user_id=data['user_id'],
         schedule_id=data['schedule_id']
     )
