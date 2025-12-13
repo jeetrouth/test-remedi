@@ -213,15 +213,12 @@ def check_reminders_route():
     # 1. Get India Time
     ist = pytz.timezone('Asia/Kolkata')
     now_str = datetime.now(ist).strftime('%H:%M') # e.g., "14:30"
-    if cron_running:
-        return "Already running", 200
-    # 2. Start Background Thread
-    cron_running = True
-    thread = threading.Thread(target=process_background_notifications_safe, args=(now_str,))
-    thread.start()
-    
-    # 3. Respond Immediately
-    return f"Checking for {now_str} in background...", 200
+    print("CRON HIT:", now_str)
+
+    process_background_notifications(now_str)  # DIRECT CALL
+
+    print("CRON FINISHED:", now_str)
+    return "done", 200
 # ============================================
 # 2. BACKGROUND THREAD PROCESSING(MESSAGE PROCESSING)
 # ============================================
