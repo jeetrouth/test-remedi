@@ -149,6 +149,21 @@ def google_login():
     session["user"] = user_data    
 
     return jsonify({"success": True})
+
+@app.route("/firebase-config.js")
+def firebase_config_js():
+    config = {
+        "apiKey": os.environ.get("FIREBASE_API_KEY"),
+        "authDomain": os.environ.get("FIREBASE_AUTH_DOMAIN"),
+        "projectId": os.environ.get("FIREBASE_PROJECT_ID"),
+        "storageBucket": os.environ.get("FIREBASE_STORAGE_BUCKET"),
+        "messagingSenderId": os.environ.get("FIREBASE_MESSAGING_SENDER_ID"),
+        "appId": os.environ.get("FIREBASE_APP_ID")
+    }
+
+    js = f"self.FIREBASE_CONFIG = {json.dumps(config)};"
+    return Response(js, mimetype="application/javascript")
+
 @app.route('/api/get_firebase_config', methods=['GET'])
 def get_firebase_config():
     firebase_config = {

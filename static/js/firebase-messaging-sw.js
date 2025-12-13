@@ -1,13 +1,9 @@
 
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
+importScripts("/firebase-config.js");
 
-async function fetchFirebaseConfig() {
-  const response = await fetch('/api/get_firebase_config');
-  return await response.json();
-}
-const firebaseConfig = fetchFirebaseConfig();
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(self.FIREBASE_CONFIG);
 const messaging = firebase.messaging();
 
 // 1. DISPLAY THE NOTIFICATION (When app is closed)
