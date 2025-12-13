@@ -1,8 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
-console.log("🔥 firebase-messaging.js loaded");
-
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("enableNotif");
 
@@ -13,9 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("👉 CLICK");
 
-    // 🔴 THIS MUST BE FIRST
     const permission = await Notification.requestPermission();
     console.log("Permission:", permission);
 
@@ -28,9 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const app = initializeApp(firebaseConfig);
     const messaging = getMessaging(app);
 
-    if ("serviceWorker" in navigator) {
-      await navigator.serviceWorker.register("/static/js/firebase-messaging-sw.js");
-    }
+    // if ("serviceWorker" in navigator) {
+    //   await navigator.serviceWorker.register("/static/js/firebase-messaging-sw.js");
+    // }
 
     const token = await getToken(messaging, {
       vapidKey: firebaseConfig.vapidKey
