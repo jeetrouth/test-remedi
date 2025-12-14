@@ -265,7 +265,7 @@ def process_background_notifications(time_str):
                         "schedule_id": doc.id,
                         "user_id": user_id,
                         "med_name": data["med_name"],
-                        "med_id": data["med_id"],
+                        "med_id": data["medicine_id"],
                         },
                         token=token
                     )
