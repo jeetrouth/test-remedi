@@ -333,15 +333,15 @@ def sw():
 
 @app.route("/addmedicine")
 def add_medicine_page():
-    return render_template("add_medicine.html")
+    return render_template("add_medicine.html",user=session['user'])
 
 @app.route("/schedule")
 def schedule_page():
-    return render_template("schedule.html")
+    return render_template("schedule.html",user=session['user'])
 
 @app.route("/confirmation")
 def confirmation_page():
-    return render_template("confirmation.html")
+    return render_template("confirmation.html",user=session['user'])
 
 # ---------------- API ----------------
 @app.route("/api/draft/save", methods=["POST"])
