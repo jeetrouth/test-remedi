@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        medicines = data.draft.medicine ? [data.draft.medicine] : [];
+        medicines = data.draft.medicine?.medicines || [];
         schedule = data.draft.schedule || {};
     }
 

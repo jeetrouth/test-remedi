@@ -1,5 +1,5 @@
 // ---------- HELPERS ----------
-function collectFormData() {
+function collectMedicineDraft() {
   return {
     medicine: {
       name: document.getElementById("medName")?.value || "",
@@ -8,7 +8,12 @@ function collectFormData() {
       quantity: document.getElementById("quantity")?.value || "",
       food: document.getElementById("food")?.value || "",
       notes: document.getElementById("notes")?.value || ""
-    },
+    }
+  };
+}
+
+function collectScheduleDraft() {
+  return {
     schedule: {
       time: document.getElementById("time-input")?.value || "",
       frequency: document.getElementById("frequency-select")?.value || "",
@@ -36,7 +41,18 @@ function getNotificationType() {
 
 // ---------- SAVE DRAFT ----------
 async function saveDraft() {
-  const payload = collectFormData();
+  let payload = {};
+
+  // Merge instead of overwrite
+  if (document.getElementById("medName")) {
+    Object.assign(payload, collectMedicineDraft());
+  }
+
+  if (document.getElementById("time-input")) {
+    Object.assign(payload, collectScheduleDraft());
+  }
+
+  if (Object.keys(payload).length === 0) return;
 
   await fetch("/api/draft/save", {
     method: "POST",
@@ -54,27 +70,25 @@ async function loadDraft() {
 
   const d = data.draft;
 
-  // Medicine
-  if (d.medicine) {
-    document.getElementById("medName") && (medName.value = d.medicine.name || "");
-    document.getElementById("dosage") && (dosage.value = d.medicine.dosage || "");
-    document.getElementById("notes") && (notes.value = d.medicine.notes || "");
+  // Restore medicine
+  if (d.medicine && document.getElementById("medName")) {
+    document.getElementById("medName").value = d.medicine.name || "";
+    document.getElementById("dosage").value = d.medicine.dosage || "";
+    document.getElementById("notes").value = d.medicine.notes || "";
   }
 
-  // Schedule
-  if (d.schedule) {
-    document.getElementById("time-input") && (timeInput.value = d.schedule.time || "");
-    document.getElementById("frequency-select") && (frequencySelect.value = d.schedule.frequency || "");
+  // Restore schedule
+  if (d.schedule && document.getElementById("time-input")) {
+    document.getElementById("time-input").value = d.schedule.time || "";
+    document.getElementById("frequency-select").value = d.schedule.frequency || "";
 
-    if (d.schedule.days) {
-      d.schedule.days.forEach(day => {
-        const el = document.querySelector(`.day[data-day="${day.toUpperCase()}"]`);
-        el && el.classList.add("selected");
-      });
-    }
+    (d.schedule.days || []).forEach(day => {
+      const el = document.querySelector(`.day[data-day="${day.toUpperCase()}"]`);
+      if (el) el.classList.add("selected");
+    });
 
-    document.getElementById("enable-reminder-checkbox") &&
-      (enableReminderCheckbox.checked = d.schedule.reminder_enabled);
+    document.getElementById("enable-reminder-checkbox").checked =
+      !!d.schedule.reminder_enabled;
   }
 }
 
