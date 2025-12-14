@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let chartInstance = null;
 
     const medicineListEl = document.getElementById('medicine-list');
+    const totalMedEl = document.getElementById("summary-med-count");
+    const remindersDayEl = document.getElementById("summary-reminders-day");
+    const startDateEl = document.getElementById("summary-start-date");
+    const endDateEl = document.getElementById("summary-end-date");
 
     // ---------------- FETCH DATA (SINGLE SOURCE OF TRUTH) ----------------
     async function getConfirmationData() {
@@ -23,42 +27,87 @@ document.addEventListener('DOMContentLoaded', () => {
     function render() {
             medicineListEl.innerHTML = "";
 
-            medicines.forEach(med => {
-                const item = document.createElement("div");
-                item.className = "medicine-item";
+            medicines.forEach((item, index) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "medicine-item";
 
-                item.innerHTML = `
-                <button class="medicine-header">
+                wrapper.innerHTML = `
+                    <button class="medicine-header" type="button">
                     <div>
-                    <div class="title">${med.medicine.name}</div>
-                    <div class="subtitle">${med.medicine.dosage || ""}</div>
+                        <div class="title">${item.medicine.name}</div>
+                        <div class="subtitle">${item.medicine.dosage || ""}</div>
                     </div>
                     <div class="caret">▼</div>
-                </button>
+                    </button>
 
-                <div class="medicine-details">
-                    <div><b>Start:</b> ${med.schedule.start_date}</div>
-                    <div><b>Duration:</b> ${med.schedule.duration_days} days</div>
-                    <div><b>Days:</b> ${med.schedule.days.join(", ")}</div>
-                    <div><b>Time:</b> ${med.schedule.time}</div>
-                    <div><b>Quantity:</b> ${med.schedule.total_quantity}</div>
-                </div>
+                    <div class="medicine-details">
+                    <div><b>Start date:</b> ${item.schedule.start_date || "—"}</div>
+                    <div><b>Duration:</b> ${item.schedule.duration_days} days</div>
+                    <div><b>Days:</b> ${
+                        item.schedule.days.length
+                        ? item.schedule.days.join(", ")
+                        : "—"
+                    }</div>
+                    <div><b>Time:</b> ${item.schedule.time || "—"}</div>
+                    <div><b>Quantity per dose:</b> ${item.schedule.quantity_per_dose}</div>
+                    <div><b>Total remaining:</b> ${item.medicine.quantity}</div>
+                    </div>
                 `;
 
-                const header = item.querySelector(".medicine-header");
-                const details = item.querySelector(".medicine-details");
+                const header = wrapper.querySelector(".medicine-header");
+                const details = wrapper.querySelector(".medicine-details");
 
-                header.addEventListener("click", () => {
-                details.classList.toggle("open");
+                header.addEventListener("click", e => {
+                    e.preventDefault();
+                    details.classList.toggle("open");
                 });
 
-                medicineListEl.appendChild(item);
+                medicineListEl.appendChild(wrapper);
+                });
+            }
+    
+/* -----------------------------
+     SUMMARY CALCULATION
+  ----------------------------- */
+   function renderSummary() {
+            totalMedEl.innerText = medicines.length;
+
+            // total reminders per day = sum of quantity_per_dose
+            const totalPerDay = medicines.reduce(
+            (sum, m) => sum + (m.schedule.quantity_per_dose || 0),
+            0
+            );
+            remindersDayEl.innerText = totalPerDay;
+
+            // start date = earliest start
+            const startDates = medicines
+            .map(m => m.schedule.start_date)
+            .filter(Boolean)
+            .map(d => new Date(d));
+
+            if (startDates.length) {
+            const minStart = new Date(Math.min(...startDates));
+            startDateEl.innerText = minStart.toLocaleDateString();
+            } else {
+            startDateEl.innerText = "Not set";
+            }
+
+            // end date = max(start + duration)
+            const endDates = medicines
+            .filter(m => m.schedule.start_date && m.schedule.duration_days)
+            .map(m => {
+                const d = new Date(m.schedule.start_date);
+                d.setDate(d.getDate() + m.schedule.duration_days);
+                return d;
             });
 
-  renderDonutChart();
-    }
-    
-
+            if (endDates.length) {
+            const maxEnd = new Date(Math.max(...endDates));
+            endDateEl.innerText = maxEnd.toLocaleDateString();
+            } else {
+            endDateEl.innerText = "Not set";
+            }
+        }
     // ---------------- CHART (UNCHANGED) ----------------
     function renderDonutChart() {
         const ctx = document.getElementById('medicine-donut-chart')?.getContext('2d');
@@ -71,10 +120,23 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: medicines.map(m => m.medicine.name),
                 datasets: [{
-                    data: medicines.map(() => 1),
+                data: medicines.map(() => 1),
+                backgroundColor: [
+                    '#4c8bfd',
+                    '#22c55e',
+                    '#f97316',
+                    '#a855f7',
+                    '#ef4444'
+                ]
                 }]
+            },
+            options: {
+                plugins: {
+                legend: { position: 'bottom' }
+                }
             }
-        });
+            });
+
     }
 
     // ---------------- ACTIONS ----------------
@@ -93,13 +155,15 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Draft saved");
     }
     function goBack() {
-        window.location.href = '/schedule';
+        window.location.href = '/add_medicine';
     }
 
     // ---------------- INIT ----------------
     async function init() {
         await getConfirmationData();
         render();
+        renderSummary();
+        renderDonutChart();
         document.getElementById("save-draft-btn")?.addEventListener("click", saveDraftOnly);
         document.getElementById('back-btn')?.addEventListener('click', goBack);
         document.getElementById('activate-btn')?.addEventListener('click', activateSchedule);

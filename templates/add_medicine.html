@@ -99,7 +99,7 @@
           </div>
 
           <label for="med-0-quantity" class="quantity-label">Quantity of Intake per Dose</label>
-          <input id="med-0-quantity" type="number" name="med[0][quantity]" value="1" min="1">
+          <input id="med-0-quantity" type="number" name="med[0][schedule][quantity_per_dose]" value="1" min="1">
 
           <!-- WHEN SHOULD THIS BE TAKEN (icon-based with chevron only) -->
           <label class="when-taken-label">When should this be taken?</label>
@@ -181,7 +181,7 @@
           <input type="number" name="med[0][schedule][duration]" min="1">
 
           <label>Total Quantity</label>
-          <input type="number" name="med[0][schedule][total_quantity]" min="1">
+          <input type="number" name="med[0][quantity]" min="1">
 
           <label>Days of Week</label>
           <div class="days-of-week">
