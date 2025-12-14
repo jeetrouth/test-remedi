@@ -146,6 +146,7 @@ def save_medicine(user_id, medicine):
 def save_schedule(user_id, medicine_id, schedule_data):
     db.collection("users").document(user_id).collection("schedules").add({
         "medicine_id": medicine_id,
+        "user_id": user_id,
         **schedule_data,
         "is_active": True,
         "created_at": firestore.SERVER_TIMESTAMP
