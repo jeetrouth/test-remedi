@@ -331,15 +331,15 @@ def sw():
 
 # ---------------- PAGES ----------------
 
-@app.route("/addmedicine")
+@app.route("/addmedicine",methods=["GET","POST"])
 def add_medicine_page():
     return render_template("add_medicine.html",user=session['user'])
 
-@app.route("/schedule")
+@app.route("/schedule",methods=["GET","POST"])
 def schedule_page():
     return render_template("schedule.html",user=session['user'])
 
-@app.route("/confirmation")
+@app.route("/confirmation",methods=["GET","POST"])
 def confirmation_page():
     return render_template("confirmation.html",user=session['user'])
 
