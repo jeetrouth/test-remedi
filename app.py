@@ -329,10 +329,93 @@ def sw():
     return send_from_directory("static", "firebase-messaging-sw.js")
 
 
-@app.route('/save_schedule', methods=['POST'])
-def save_schedule():
-    data=request.json()
-    result=firebase_service.save_schedule(data)
-    return result
+# ---------------- PAGES ----------------
+
+@app.route("/addmedicine")
+def add_medicine_page():
+    return render_template("add_medicine.html")
+
+@app.route("/schedule")
+def schedule_page():
+    return render_template("schedule.html")
+
+@app.route("/confirmation")
+def confirmation_page():
+    return render_template("confirmation.html")
+
+# ---------------- API ----------------
+@app.route("/api/draft/save", methods=["POST"])
+def save_draft():
+    session.permanent = True
+    user_id = session.setdefault("user_id", "demo_user")
+
+    data = request.json
+    if not data:
+        return {"error": "No data"}, 400
+
+    firebase_service.save_draft(user_id, data)
+
+    return {"status": "draft_saved"}
+
+@app.route("/api/draft/load", methods=["GET"])
+def load_draft():
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"draft": None}
+
+    doc = firebase_service.get_draft(user_id)
+    if not doc.exists:
+        return {"draft": None}
+
+    return {"draft": doc.to_dict()["data"]}
+
+
+
+
+@app.route("/api/activate", methods=["POST"])
+def activate():
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"error": "Not logged in"}, 401
+
+    draft_doc = firebase_service.get_draft(user_id)
+    if not draft_doc.exists:
+        return {"error": "No draft found"}, 400
+
+    data = draft_doc.to_dict()["data"]
+
+    # 1️⃣ Save medicine
+    medicine_id = save_medicine(user_id, data["medicine"])
+
+    # 2️⃣ Save schedule (linked)
+    save_schedule(user_id, medicine_id, data["schedule"])
+
+    # 3️⃣ Clear draft
+    firebase_service.delete_draft(user_id)
+
+    return {"status": "activated"}
+
+@app.route("/api/confirmation/data")
+def confirmation_data():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    return jsonify(get_confirmation_data(user_id))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

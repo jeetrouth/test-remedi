@@ -102,19 +102,88 @@ def get_token(email):
         user_data = user_doc.to_dict()
         return user_data.get("fcm_token")
     return None
-
-def save_schedule(data):
-    # Save directly to Firestore
-    # We use a Collection Group structure so we can search ALL users at once later
-    db.collection('users').document(data['user_id']).collection('schedules').add({
-        'med_id': data['med_id'],
-        'med_name': data['med_name'],
-        'time': data['time'], # Format must be "HH:MM" (24 hour)
-        'token': data['token'],
-        'user_id': data['user_id']
+# ---------------------------
+# SAVING DRAFT
+# ---------------------------
+def save_draft(user_id, draft_data):
+    doc_ref = db.collection("drafts").document(user_id)
+    doc_ref.set({
+        "data": draft_data,
+        "updated_at": firestore.SERVER_TIMESTAMP
     })
-    
-    return jsonify({"status": "Saved to database"})
+    return True
+#-----------------------------
+# FETCH DRAFT
+#-----------------------------
+def get_draft(user_id):
+    doc = db.collection("drafts").document(user_id).get()
+    if doc.exists:
+        return doc
+    return {}
+
+#---------------------------
+# DELETE DRAFT
+#---------------------------
+def delete_draft(user_id):
+    db.collection("drafts").document(user_id).delete()
+    return True
+# ---------------------------
+# SAVE MEDICINE
+# ---------------------------
+def save_medicine(user_id, medicine_data):
+    doc_ref = db.collection("medicines").document()
+    doc_ref.set({
+        "user_id": user_id,
+        "name": medicine_data["name"],
+        "dosage": medicine_data.get("dosage"),
+        "notes": medicine_data.get("notes"),
+    })
+    return doc_ref.id
+
+
+# ---------------------------
+# SAVE SCHEDULE
+# ---------------------------
+def save_schedule(user_id, schedule_data):
+    doc_ref = db.collection("schedules").document()
+    doc_ref.set({
+        "user_id": user_id,
+
+        # Pill pack / duration
+        "preset_days": schedule_data.get("preset_days"),
+        "custom_days": schedule_data.get("custom_days"),
+        "total_quantity": schedule_data.get("total_quantity"),
+        "start_date": schedule_data.get("start_date"),
+
+        # Weekly & timing
+        "days": schedule_data.get("days", []),              # [] = daily
+        "time": schedule_data["time"],                      # IST HH:MM
+        "frequency": schedule_data["frequency"],
+        "every_x_hours": schedule_data.get("every_x_hours"),
+
+        # Reminder prefs
+        "reminder_enabled": schedule_data.get("reminder_enabled", True),
+        "snooze_minutes": schedule_data.get("snooze_minutes", 10),
+        "notification_type": schedule_data.get("notification_type", "push"),
+
+        # System flags
+        "is_active": True,
+        "created_at": firestore.SERVER_TIMESTAMP
+    })
+
+    return doc_ref.id
+
+# ---------------------------
+# FETCH CONFIRMATION DATA
+# ---------------------------
+def get_confirmation_data(user_id):
+    meds = db.collection("medicines").where("user_id", "==", user_id).stream()
+    schedules = db.collection("schedules").where("user_id", "==", user_id).stream()
+
+    return {
+        "medicines": [m.to_dict() | {"id": m.id} for m in meds],
+        "schedules": [s.to_dict() | {"id": s.id} for s in schedules],
+    }
 
 def decrement_inventory_and_log(user_id, schedule_id):
     if not user_id or not schedule_id:
