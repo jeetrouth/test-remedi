@@ -15,7 +15,7 @@ messaging.onBackgroundMessage((payload) => {
     : "Reminder";
 
   const notificationOptions = {
-    body: `Time to take ${payload.data.med_name} ${payload.data.food ? ' (' + payload.data.food + ')' : ''}`,
+    body: `Time to take ${payload.data.med_name} ${payload.data.food}`,
     icon: "/static/images/titleicon.png",
     data: payload.data,
     actions: [
@@ -60,7 +60,7 @@ self.addEventListener('notificationclick', (event) => {
   else {
       // Construct the URL to your special "Notification Action" page
       // We pass the IDs in the URL so the page knows what to show
-      const actionUrl = `/notification-action?schedule_id=${scheduleId}&user_id=${userId}&med_name=${medName}`;
+      const actionUrl = `/notification-action?schedule_id=${scheduleId}&user_id=${userId}&med_name=${medName}&food=${event.notification.data.food}`;
       
       // Open the browser window
       event.waitUntil(

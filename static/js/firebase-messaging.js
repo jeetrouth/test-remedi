@@ -56,26 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Mark as enabled
         btn.classList.add("enabled");
         btn.classList.add("hidden"); // Hide the button
-        localStorage.setItem('notificationEnabled', 'true');
         
-        // Set up foreground message handler
-        onMessage(messaging, (payload) => {
-          console.log("FOREGROUND MESSAGE:", payload);
-
-          navigator.serviceWorker.ready.then((reg) => {
-            reg.showNotification("Medicine Reminder", {
-              body: `Time to take ${payload.data.med_name} ${payload.data.food ? ' (' + payload.data.food + ')' : ''}`,
-              icon: "/static/images/titleicon.png",
-              badge: "/static/images/titleicon.png",
-              data: payload.data,
-              requireInteraction: true,
-              actions: [
-                { action: "taken", title: "Mark as Taken" },
-                { action: "snooze", title: "Snooze 10 min" }
-              ]
-            });
-          });
-        });
+        
 
         alert("✅ Notifications enabled successfully!");
       } else {
@@ -90,3 +72,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+document.addEventListener("DOMContentLoaded", () => {
+// Set up foreground message handler
+        onMessage(messaging, (payload) => {
+          console.log("FOREGROUND MESSAGE:", payload);
+
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification("Medicine Reminder", {
+              body: `Time to take ${payload.data.med_name} ${payload.data.food ? ' (' + payload.data.food + ')' : ''}`,
+              icon: "/static/images/titleicon.png",
+              badge: "/static/images/titleicon.png",
+              data: payload.data,
+              requireInteraction: true,
+              actions: [
+                { action: "taken", title: "Mark as Taken" },
+                { action: "skip", title: "Skip" }
+              ]
+            });
+          });
+        });
+  });        
