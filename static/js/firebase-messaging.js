@@ -53,10 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (saveRes.ok) {
         console.log("✅ FCM Token saved:", token);
         
-        // Mark as enabled
-        btn.classList.add("enabled");
-        btn.classList.add("hidden"); // Hide the button
-        
         
 
         alert("✅ Notifications enabled successfully!");
