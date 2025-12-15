@@ -7,12 +7,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Extract Data from URL
     const params = new URLSearchParams(window.location.search);
     const scheduleId = params.get('schedule_id');
+    const food = params.get('food');
     const userId = params.get('user_id');
     const medName = params.get('med_name');
 
     // 3. Update UI
     if (medNameDisplay) {
         medNameDisplay.innerText = medName || "Medicine";
+        if (food) {
+            medNameDisplay.innerText += ` (${food})`;
+        }
+        
     }
 
     // 4. Define Actions

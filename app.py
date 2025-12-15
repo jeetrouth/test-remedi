@@ -227,31 +227,24 @@ def check_reminders_route():
     global cron_running
     # 1. Get India Time
     ist = pytz.timezone('Asia/Kolkata')
+    day=datetime.now(ist).strftime('%A')[:3].lower() # e.g., "Monday"
     now_str = datetime.now(ist).strftime('%H:%M') # e.g., "14:30"
-    print("CRON HIT:", now_str)
+    print("CRON HIT:", now_str, day)
 
-    process_background_notifications(now_str)  # DIRECT CALL
+    process_background_notifications(now_str,day)  # DIRECT CALL
 
     print("CRON FINISHED:", now_str)
     return "done", 200
-# ============================================
-# 2. BACKGROUND THREAD PROCESSING(MESSAGE PROCESSING)
-# ============================================
-def process_background_notifications_safe(time_str):
-    global cron_running
-    try:
-        process_background_notifications(time_str)
-    finally:
-        cron_running = False
-
-
-def process_background_notifications(time_str):
-    print(f"🧵 Thread working on: {time_str}")
+# ==========================================
+# 2. BACKGROUND WORKER FUNCTION 
+# ==========================================
+def process_background_notifications(time_str,day):
+    print(f"🧵 Thread working at: {time_str} on {day}")
     
     try:
         # Query Firestore
         firebase_service._user_token_cache.clear()
-        docs=firebase_service.get_schedules_by_time(time_str)
+        docs=firebase_service.get_schedules_by_time(time_str,day)
         
         # Optimization: Use Batch Sending!
         # Sending 1 by 1 is slow. Sending 500 at a time is fast.
@@ -271,6 +264,7 @@ def process_background_notifications(time_str):
                         data={
                         "schedule_id": doc.id,
                         "user_id": user_id,
+                        "food": data.get("food",""),
                         "med_name": data["med_name"],
                         "med_id": data["medicine_id"],
                         },
@@ -421,6 +415,7 @@ def activate():
         # 2️⃣ Save schedule (linked)
         firebase_service.save_schedule(
             user_id=user_id,
+            food=item["medicine"]["food"],
             med_name=item["medicine"]["name"],
             medicine_id=med_id,
             schedule_data=item["schedule"]

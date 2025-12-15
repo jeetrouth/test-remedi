@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           navigator.serviceWorker.ready.then((reg) => {
             reg.showNotification("Medicine Reminder", {
-              body: `Time to take ${payload.data.med_name}`,
+              body: `Time to take ${payload.data.med_name} ${payload.data.food ? ' (' + payload.data.food + ')' : ''}`,
               icon: "/static/images/titleicon.png",
               badge: "/static/images/titleicon.png",
               data: payload.data,

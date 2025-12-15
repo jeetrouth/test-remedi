@@ -143,10 +143,11 @@ def save_medicine(user_id, medicine):
 # ---------------------------
 # SAVE SCHEDULE
 # ---------------------------
-def save_schedule(user_id, medicine_id, med_name,schedule_data):
+def save_schedule(user_id, medicine_id, food, med_name,schedule_data):
     db.collection("users").document(user_id).collection("schedules").add({
         "medicine_id": medicine_id,
         "med_name": med_name,
+        "food": food,
         "user_id": user_id,
         **schedule_data,
         "is_active": True,
@@ -259,5 +260,5 @@ def delete_schedule(user_id, schedule_id):
         print(f"Error deleting schedule {schedule_id}: {e}")
         return False
 def get_schedules_by_time(time_str):
-    docs = db.collection_group('schedules').where('time', '==', time_str).stream()
+    docs = db.collection_group('schedules').where('time', '==', time_str).where('days','array_contains',day).stream()
     return docs

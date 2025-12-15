@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Failed to activate schedule');
             return;
         }
-
+        alert('✅ Schedule activated successfully!');
         window.location.href = '/dashboard';
     }
 

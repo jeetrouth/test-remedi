@@ -15,7 +15,7 @@ messaging.onBackgroundMessage((payload) => {
     : "Reminder";
 
   const notificationOptions = {
-    body: `Time to take ${payload.data.med_name}`,
+    body: `Time to take ${payload.data.med_name} ${payload.data.food ? ' (' + payload.data.food + ')' : ''}`,
     icon: "/static/images/titleicon.png",
     data: payload.data,
     actions: [
