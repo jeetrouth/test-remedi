@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 let messaging = null;
+const notificationSound = new Audio("/static/sounds/notify.mp3");
 
 async function initFirebaseMessaging() {
   const res = await fetch("/api/get_firebase_config");
@@ -13,9 +14,13 @@ async function initFirebaseMessaging() {
   // 🔔 FOREGROUND HANDLER
   onMessage(messaging, (payload) => {
   console.log("🔔 FOREGROUND MESSAGE:", payload);
-
+    // 🔊 play sound
+    notificationSound.currentTime = 0; // rewind if already played
+    notificationSound.play().catch(err => {
+      console.warn("Sound blocked:", err);
+    });
     showToast(
-      `💊 Time to take ${payload.data.med_name}`,
+      `💊 Time to take ${payload.data.med_name} ${payload.data.food}`,
       payload.data
     );
   });
