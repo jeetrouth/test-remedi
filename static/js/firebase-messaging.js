@@ -59,13 +59,13 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.reload();
       } else {
         throw new Error("Failed to save token");
+        window.location.reload();
       }
 
     } catch (error) {
       console.error("❌ Notification setup failed:", error);
       alert("Failed to enable notifications. Please try again.");
-      btn.disabled = false;
-      btn.style.opacity = "1";
+      window.location.reload();
     }
   });
 });
