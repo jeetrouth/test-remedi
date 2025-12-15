@@ -53,7 +53,7 @@ function showToast(message, payload) {
     toast.classList.remove("show");
     toast.classList.add("hidden");
     toast.onclick = null;
-  }, 4000);
+  }, 10000);
 }
 
 
