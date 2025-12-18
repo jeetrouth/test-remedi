@@ -174,32 +174,34 @@ def decrement_inventory_and_log(user_id, schedule_id):
     # 1. Reference the Schedule to get Medicine Details
     # (Assuming schedule doc is at: users/{uid}/schedules/{schedule_id})
     sched_ref = db.collection('users').document(user_id).collection('schedules').document(schedule_id)
-    
+    med_id=sched_ref.get().to_dict().get('medicine_id')
+    decrement_quantity=sched_ref.get().to_dict().get('quantity_per_dose',1)
+    med_ref=db.collection('users').document(user_id).collection('medicines').document(med_id)
     try:
         # Use a Transaction to safely decrement inventory
-        new_quantity = run_inventory_transaction(db.transaction(), sched_ref, user_id)
+        new_quantity = run_inventory_transaction(db.transaction(),med_ref, user_id,decrement_quantity,sched_ref)
         return jsonify({"status": "success", "remaining_quantity": new_quantity})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @firestore.transactional
-def run_inventory_transaction(transaction, sched_ref, user_id):
+def run_inventory_transaction(transaction, med_ref, user_id,decrement_quantity,sched_ref):
     # 1. Read the Schedule to find the Medicine Name or Inventory Link
-    sched_snap = sched_ref.get(transaction=transaction)
-    if not sched_snap.exists:
-        raise Exception("Schedule not found")
+    med_snap = med_ref.get(transaction=transaction)
+    if not med_snap.exists:
+        raise Exception("schedule not found")
         
-    sched_data = sched_snap.to_dict()
+    med_data = med_snap.to_dict()
     
-    # 2. Logic to find the actual Inventory Document
-    # OPTION A: If 'current_quantity' is stored directly inside the Schedule document
-    current_qty = sched_data.get('quantity', 0)
-    med_name = sched_data.get('med_name')
+    current_qty = med_data.get('quantity', 0)
+    med_name = med_data.get('name')
 
     # 3. Decrement
     if current_qty > 0:
-        new_qty = current_qty - 1
-        transaction.update(sched_ref, {'quantity': new_qty})
+        new_qty = current_qty - decrement_quantity
+        if new_qty < 0:
+            new_qty = 0
+        transaction.update(med_ref, {'quantity': new_qty})
         
         # 4. LOG IT (Create a new document in 'logs')
         log_ref = db.collection('users').document(user_id).collection('logs').document()
@@ -207,7 +209,9 @@ def run_inventory_transaction(transaction, sched_ref, user_id):
             'med_name': med_name,
             'action': 'taken',
             'timestamp': firestore.SERVER_TIMESTAMP,
-            'schedule_id': sched_ref.id
+            'schedule_id': sched_ref.id,
+            'quantity_taken': decrement_quantity
+            
         })
         
         return new_qty
