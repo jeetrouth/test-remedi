@@ -205,13 +205,14 @@ def run_inventory_transaction(transaction, med_ref, user_id,decrement_quantity,s
         
         # 4. LOG IT (Create a new document in 'logs')
         log_ref = db.collection('users').document(user_id).collection('logs').document()
+        transaction.get(log_ref)  # Ensure log_ref is included in the transaction
         transaction.set(log_ref, {
             'med_name': med_name,
             'action': 'taken',
             'timestamp': firestore.SERVER_TIMESTAMP,
             'schedule_id': sched_ref.id,
             'quantity_taken': decrement_quantity
-            
+
         })
         
         return new_qty
