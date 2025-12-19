@@ -255,13 +255,10 @@ def get_schedules(user_id):
         return []
 
 def delete_schedule(user_id, schedule_id):
-    """
-    Deletes a schedule document
-    Note: This does NOT delete the medicine, only the schedule
-    """
+    
     try:
         schedule_ref = db.collection('users').document(user_id).collection('schedules').document(schedule_id)
-        med_id= schedule_ref.to_dict().get('medicine_id')
+        med_id= schedule_ref.get().to_dict().get('medicine_id')
         med_ref = db.collection('users').document(user_id).collection('medicines').document(med_id)
         schedule_ref.delete()
         med_ref.delete()
