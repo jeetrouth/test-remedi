@@ -41,7 +41,7 @@ async function loadPrescriptions() {
                         <button onclick="deletePrescription('${pres.id}')">
                             🗑 Delete
                         </button>
-                        <button class="schedule" onclick="createSchedule('${pres.image_url}')">
+                        <button id = "createbtn" class="schedule" onclick="createSchedule('${pres.image_url}')">
                             📅 Create schedule with this
                         </button>
                     </div>
@@ -109,6 +109,9 @@ async function OCR(imageUrl){
 
 }
 function createSchedule(image_url) {
+    const btn=getElementById("createbtn");
+    btn.disabled = true;
+    btn.innerText = "⏳ Processing image... (approx 3-5 seconds)...";
     OCR(image_url);
 
 }
