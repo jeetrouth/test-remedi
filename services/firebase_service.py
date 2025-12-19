@@ -267,5 +267,19 @@ def delete_schedule(user_id, schedule_id):
         print(f"Error deleting schedule {schedule_id}: {e}")
         return False
 def get_schedules_by_time(time_str,day):
-    docs = db.collection_group('schedules').where('times', 'array_contains', time_str).where('days','array_contains',day).stream()
-    return docs
+    docs = db.collection_group('schedules').where('times', 'array_contains', time_str).stream()
+    valid_docs = []
+    
+    # 2. Filter by DAY in Python
+    for doc in docs:
+        data = doc.to_dict()
+        scheduled_days = data.get('days', []) # e.g. ['mon', 'wed', 'fri']
+        
+        # Ensure case-insensitive comparison (API might send 'Mon', DB might have 'mon')
+        # We convert the DB list to lowercase and the input day to lowercase
+        normalized_days = [d.lower() for d in scheduled_days]
+        
+        if day.lower() in normalized_days:
+            valid_docs.append(doc)
+            
+    return valid_docs
