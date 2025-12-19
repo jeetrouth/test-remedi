@@ -403,7 +403,7 @@ def delete_schedule(schedule_id):
     user_id = session['user']['email']
     firebase_service.delete_schedule(user_id, schedule_id)
     return jsonify({"status": "success"})
-@app.route('/api/prescriptions/delete/<pres_id>')
+@app.route('/api/prescriptions/delete/<pres_id>', methods=['DELETE'])
 def delete_prescription(pres_id):
     if 'user' not in session:
         return jsonify({"error": "Unauthorized"}), 401

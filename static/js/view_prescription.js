@@ -25,12 +25,17 @@ async function loadPrescriptions() {
             // pres.id and pres.image_url would come from your database
             dropdown.innerHTML = `
                 <button class="dropdown-btn" onclick="togglePrescription('${pres.id}')">
-                    Prescription #${pres.id} - ${pres.date || 'No Date'}
+                    Prescription #${pres.id}      -       ${pres.uploaded_at || 'No Date'}
                     <span class="arrow" id="arrow-${pres.id}">▼</span>
                 </button>
 
-                <div class="dropdown-content" id="content-${pres.id}" style="display:none">
-                    <img src="${pres.image_url}" class="pres-img" alt="Prescription">
+                <div class="dropdown-content" id="content-${pres.id}" 
+                style="display:none; padding: 10px; text-align: center; background: #f9f9f9; border: 1px solid #ddd; border-top: none;">
+                
+                <!-- Image with inline CSS for responsive fitting -->
+                <img src=${pres.image_url} 
+                    alt="Prescription" 
+                    style="max-width: 100%; height: auto; max-height: 300px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: block; margin: 0 auto;">
                     
                     <div class="actions">
                         <button onclick="deletePrescription('${pres.id}')">
@@ -105,5 +110,5 @@ async function OCR(imageUrl){
 }
 function createSchedule(image_url) {
     OCR(image_url);
-    
+
 }
