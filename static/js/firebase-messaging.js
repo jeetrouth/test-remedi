@@ -45,15 +45,16 @@ function showToast(message, payload) {
       med_name: payload.med_name,
       food: payload.food || ""
     });
-
-    window.location.href = `/notification-action?${params.toString()}`;
+    toast.classList.remove("show");
+    toast.classList.add("hidden")
+    window.open(`/notification-action?${params.toString()}`);
   };
 
-  setTimeout(() => {
-    toast.classList.remove("show");
-    toast.classList.add("hidden");
-    toast.onclick = null;
-  }, 10000);
+  //setTimeout(() => {
+    //toast.classList.remove("show");
+    //toast.classList.add("hidden");
+    //toast.onclick = null;
+  //}, 10000);
 }
 
 
