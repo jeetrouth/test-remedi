@@ -35,6 +35,7 @@ async function performLogout() {
             body: JSON.stringify({ token })
         });
         if (response.ok) {
+            localStorage.removeItem("fcm_token");
             window.location.href = "/logout";
         }
     } catch (error) {
