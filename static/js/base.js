@@ -22,12 +22,25 @@ if (closeBtn) {
 // 3. Confirm Logout
 if (confirmLogout) {
     confirmLogout.addEventListener("click", () => {
-    
-    window.location.href = "/logout";
+    performLogout();
 
     });
 }
-
+async function performLogout() {
+    const token = localStorage.getItem("fcm_token");
+    try {
+        const response = await fetch('/remove-fcm-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+        if (response.ok) {
+            window.location.href = "/logout";
+        }
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
+}
 // 4. (Optional) Close if clicking outside the popup content
 window.addEventListener("click", (e) => {
     if (e.target === logoutPopup) {

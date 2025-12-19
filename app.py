@@ -511,13 +511,13 @@ def test_ocr_page():
 
 
 
+@app.route('/remove-fcm-token',methods=['GET','POST'])
+def removefcm():
+    data = request.get_json()
+    token = data.get("token")
 
-
-
-
-
-
-
+    firebase_service.remove_fcm_token(token)
+    return jsonify({"status": "removed"}),200
 
 if __name__ == '__main__':
     app.run(debug=True)

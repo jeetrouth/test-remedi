@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (saveRes.ok) {
         console.log("✅ FCM Token saved:", token);
-     
+        localStorage.setItem("fcm_token", token);
         alert("✅ Notifications enabled successfully!");
         window.location.reload();
       } else {
