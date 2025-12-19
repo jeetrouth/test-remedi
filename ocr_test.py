@@ -46,27 +46,30 @@ def extract_medicines(image_url):
 
     # Prompt tuned to match your add_medicine.js fields
     prompt = """
-    You are an expert pharmacist. Analyze this prescription.
-    Extract medicines into a JSON list.
-    
-    Strictly follow these value constraints to match the database:
-    1. 'times': Use ONLY ["Morning", "Afternoon", "Evening", "Night"].
-    2. 'food': Use ONLY "Before Food", "After Food", or "No preference".
-    3. 'medium': Use ONLY "Tablet", "Capsule", "Syrup", "Drops", "Injection".
-    
+    Role: You are a Senior Clinical Pharmacist specializing in prescription digitisation. Your task is to accurately parse medical prescriptions into a structured JSON format for database ingestion.
+    Instructions:
+    Decode Abbreviations: Translate standard medical shorthand (e.g., "BID" → Morning, Night; "AC" → Before Food; "1-0-1" → Morning, Night).
+    Strict Value Mapping: You MUST map input values to the following allowed categories. If the prescription uses a term not listed, pick the closest match or use null.
+    times: Array of ["Morning", "Afternoon", "Evening", "Night"].
+    food: Must be exactly "Before Food", "After Food", or "No preference".
+    medium: Must be exactly "Tablet", "Capsule", "Syrup", "Drops", or "Injection". (If the medium is an ointment or inhaler, use null).
+    Inference Logic:
+    If quantity is not explicitly stated, calculate it: (number of times per day) * (quantity_per_dose) * (duration_days).
+    If a value is missing and cannot be inferred, return null for that field.
+    Ensure quantity and duration_days are returned as Integers, not strings.
     JSON Output Structure:
     [
-      {
-        "name": "Medicine Name", 
-        "dosage": "e.g. 500mg", 
-        "medium": "Tablet", 
-        "quantity": 10,
-        "quantity_per_dose": 1, 
-        "food": "After Food", 
-        "times": ["Morning", "Night"], 
-        "duration_days": 5,
-        "notes": "Any special instructions"
-      }
+        {
+            "name": "Full Medicine Name",
+            "dosage": "Strength (e.g., 500mg, 10ml, 1.2g)",
+            "medium": "Tablet",
+            "quantity": 10,
+            "quantity_per_dose": 1,
+            "food": "After Food",
+            "times": ["Morning", "Night"],
+            "duration_days": 5,
+            "notes": "Any specific instructions like 'dissolve in water' or 'finish the course'"
+        }
     ]
     """
 
