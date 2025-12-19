@@ -552,7 +552,7 @@ def upload_prescription():
     user_id = session['user']['email']
     firebase_service.upload_prescription(user_id,image_url)
     return jsonify({"success":True}), 200
-@app.route('/api/prescription/list',methods=['GET'])
+@app.route('/api/prescriptions/list',methods=['GET'])
 def list_prescriptions():
     user_id = session['user']['email']
     prescriptions = firebase_service.list_prescriptions(user_id)
