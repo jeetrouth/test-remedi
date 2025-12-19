@@ -520,8 +520,9 @@ def removefcm():
     # silent=True prevents crashing if header is missing
     data = request.get_json(silent=True) or {} 
     token = data.get("token")
+    user_id=session['user']['email']
     if token:
-        firebase_service.remove_fcm_token(token)
+        firebase_service.remove_fcm_token(token,user_id)
         return jsonify({"status": "removed"}),200
     else:
         return jsonify({"error": "No token provided"}),400

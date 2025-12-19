@@ -38,6 +38,7 @@ async function performLogout() {
             localStorage.removeItem("fcm_token");
             window.location.href = "/logout";
         }
+        else{window.location.href = "/logout";}
     } catch (error) {
         console.error("Logout failed:", error);
     }
